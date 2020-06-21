@@ -1,0 +1,37 @@
+# 单个井号跟个空格，把该行，其后的所有内容忽略
+# 单个井号跟个空格，单个空格跟个井号，把中间的内容忽略 #
+Settings{
+    Template post1
+    Outputfile xxxx.txt
+    Repeat 20
+}
+# annotation #
+{
+
+} [1 4 ]
+# 连续的Br自动合并，Br看作是仅有一个Containing的Brace #
+Br [2 ]
+{
+    [placeholder phername ]
+} [4 ]
+Br [2 5 ]
+# 大括号或Br间的回车自动忽略
+
+
+{
+aaaaaaaaaaaaaaaaaaaaa\
+bbbbbbbbbbbbb\
+cccccccccccccccccc
+
+    [rowsmessup {
+aaaaaaaaaaaaaa,
+cccccccccccccc,
+bbbbbbbbbbbbbb,
+    } {
+        2
+    }]
+} [2 ]
+
+{
+
+}

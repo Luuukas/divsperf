@@ -1,0 +1,48 @@
+# 单个井号跟个空格，把该行，其后的所有内容忽略
+# 单个井号跟个空格，单个空格跟个井号，把中间的内容忽略 #
+Settings{
+    Script serverperf1
+}
+# annotation #
+{
+    [udp st uuudddppp 127.0.0.1 53]
+    [xxanalyzer st wowres uuudddppp ]
+    [xxanalyzer ed wowres ]
+    [tcp st tttcccppp 127.0.0.1 80 ]
+    [yyanalyzer tcprecver wowres ]
+    [tcp cn tttcccppp tcpconnect ]
+    [cpu st cccpppuuu 127.0.0.1 2233 ]
+    [cpuanalyzer cpustate cpures ]
+}[0 ][Lv 0]
+
+{
+    [xxanalyzer be wowres ]
+    [tcp cl tcpconnect ]
+    [xxanalyzer ed wowres ]
+    [xxanalyzer ce wowres ]
+    [yyreporter result > yy.txt ]
+    [zzreporter wowres >> zz.html ]
+    [globalreporter global >> gg.txt ]
+    [cpureporter cpures > cc.txt ]
+}[0 ][Lv 10]
+
+{
+    [cpu be cccpppuuu ]
+
+    [parallel
+        [udp sr uuudddppp 500 [use templatename { hd1: a hd2: 3 } ] 500 1 ]
+    ]
+
+    [cpu ed cccpppuuu cpustate ]
+}[2 ][Lv 1]
+
+{
+    [tcp sd tcpconnect [use tpltcpname ] ]
+    [tcp sd tcpconnect [use tpltcpname ] ]
+    [tcp rv tcpconnect tcprecver]
+}[4 ][Lv 1]
+
+
+
+
+
