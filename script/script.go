@@ -7,3 +7,5 @@ func Register(addon parse.Addon) {
 		parse.Addons[addon.Name()] = addon
 	}
 }
+
+// todo: 按level并行串行执行各个最外层块

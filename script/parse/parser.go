@@ -3,6 +3,7 @@ package parse
 import (
 	"io/ioutil"
 	"strconv"
+	"sync"
 )
 
 const (
@@ -17,7 +18,7 @@ var (
 	// Addon包括addon, reporter, analyzer, conner
 	Addons = make(map[string] Addon)
 	Scripts = make(map[string] *Script)
-	Levels [100]*LevelCard
+	Levels [10]*LevelCard
 )
 
 type LevelCard struct {
@@ -26,9 +27,9 @@ type LevelCard struct {
 }
 
 type Addon interface {
-	Action(*SquareBrackets) error
+	Action(*sync.WaitGroup, *SquareBrackets) error
 	CanReturn() bool
-	Action_and_Return(*SquareBrackets) (*[]rune, error)
+	Action_and_Return(*sync.WaitGroup, *SquareBrackets) (*[]rune, error)
 	Name() string
 }
 
@@ -43,33 +44,29 @@ type SquareBrackets struct {
 	Tokens *[]Token
 }
 
-func (sb *SquareBrackets) LetAction() error {
-	return Addons[sb.Name].Action(sb)
+func (sb *SquareBrackets) LetAction(wg *sync.WaitGroup) error {
+	return Addons[sb.Name].Action(wg, sb)
 }
 
-func (sb *SquareBrackets) LetActionandReturn() (*[]rune, error) {
+func (sb *SquareBrackets) LetActionandReturn(wg *sync.WaitGroup) (*[]rune, error) {
 	if !Addons[sb.Name].CanReturn() {
 		return nil, TrytoUseAddonWithoutReturn{}
 	}
-	return Addons[sb.Name].Action_and_Return(sb)
+	return Addons[sb.Name].Action_and_Return(wg, sb)
 }
 
 // 一个外层大括号的内容
 // 一个大括号内容全部由中括号即可运行插件组成
 type Brace struct {
 	Sbs []SquareBrackets
-	rangelo int
-	rangehi int
-	level int
+	Rangelo int
+	Rangehi int
+	Level int
 }
 
 type Script struct {
 	Name string
 	Braces []Brace
-}
-
-func (*Script) Run () error {
-
 }
 
 type Parser struct {
@@ -81,15 +78,15 @@ type Parser struct {
 	outputfilename string
 }
 
-func (parser *Parser) New(filename string) (*Parser, error) {
+func (parser *Parser) New(filename string) (error) {
 	crvfbytes, err := ioutil.ReadFile(parser.filename)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	parser.scri = []rune(string(crvfbytes))
 	parser.cursor = 0
 	parser.eof = false
-	return parser, nil
+	return nil
 }
 
 func (parser *Parser) skipBlank() {
@@ -374,11 +371,11 @@ func (parser *Parser) parseBrace() (*Brace, error) {
 			}
 			brace.Sbs = append(brace.Sbs, *sb)
 		} else if r == '}' {
-			brace.rangelo, brace.rangehi, err = parser.getRange()
+			brace.Rangelo, brace.Rangehi, err = parser.getRange()
 			if err != nil {
 				return nil, err
 			}
-			brace.level, err = parser.parseLevel()
+			brace.Level, err = parser.parseLevel()
 			if err != nil {
 				return nil, err
 			}
@@ -412,8 +409,8 @@ func (parser *Parser) Parse() error {
 			if err != nil {
 				return err
 			}
-			LvC := LevelCard{bracep, Levels[bracep.level]}
-			Levels[bracep.level] = &LvC
+			LvC := LevelCard{bracep, Levels[bracep.Level]}
+			Levels[bracep.Level] = &LvC
 			parser.runner.Braces = append(parser.runner.Braces, *bracep)
 		default:
 			return FLParseError{}

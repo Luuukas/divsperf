@@ -4,6 +4,7 @@ import (
 	"divsperf/script"
 	"divsperf/script/parse"
 	"divsperf/script/tools"
+	"sync"
 )
 
 const (
@@ -23,11 +24,11 @@ func (*UdpAddon) CanReturn() bool {
 	return false
 }
 
-func (*UdpAddon) Action_and_Return(sb *parse.SquareBrackets) (*[]rune, error) {
+func (*UdpAddon) Action_and_Return(wg *sync.WaitGroup, sb *parse.SquareBrackets) (*[]rune, error) {
 	return nil, nil
 }
 
-func (udpap *UdpAddon) Action(sb *parse.SquareBrackets) error{
+func (udpap *UdpAddon) Action(wg *sync.WaitGroup, sb *parse.SquareBrackets) error{
 	if (*sb.Tokens)[0].Ctype != parse.STR {
 		return parse.UnmatchError_parameter_type{
 			sb.Name,

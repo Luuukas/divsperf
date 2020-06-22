@@ -3,6 +3,7 @@ package dnsanalyzer
 import (
 	"divsperf/script"
 	"divsperf/script/parse"
+	"sync"
 )
 
 type DnsAnalyzerAddon struct {
@@ -18,11 +19,11 @@ func (*DnsAnalyzerAddon) CanReturn() bool {
 	return false
 }
 
-func (*DnsAnalyzerAddon) Action_and_Return(sb *parse.SquareBrackets) (*[]rune, error) {
+func (*DnsAnalyzerAddon) Action_and_Return(wg *sync.WaitGroup, sb *parse.SquareBrackets) (*[]rune, error) {
 	return nil, nil
 }
 
-func (daeraddon *DnsAnalyzerAddon) Action(sb *parse.SquareBrackets) error {
+func (daeraddon *DnsAnalyzerAddon) Action(wg *sync.WaitGroup, sb *parse.SquareBrackets) error {
 	if (*sb.Tokens)[0].Ctype != parse.STR {
 		return parse.UnmatchError_parameter_type{
 			sb.Name,

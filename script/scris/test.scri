@@ -20,7 +20,7 @@ Settings{
     [tcp cl tcpconnect ]
     [xxanalyzer ed wowres ]
     [xxanalyzer ce wowres ]
-    [yyreporter result > yy.txt ]
+    [yyreporter result yy ]
     [zzreporter wowres >> zz.html ]
     [globalreporter global >> gg.txt ]
     [cpureporter cpures > cc.txt ]
@@ -29,8 +29,8 @@ Settings{
 {
     [cpu be cccpppuuu ]
 
-    [parallel
-        [udp sr uuudddppp 500 [use templatename { hd1: a hd2: 3 } ] 500 1 ]
+    [parallel 500
+        [udp sr uuudddppp 500 [use templatename ] 500 1 ]
     ]
 
     [cpu ed cccpppuuu cpustate ]

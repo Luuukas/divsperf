@@ -90,7 +90,7 @@ type Template struct {
 	Repeat int
 }
 
-func (tpl *Template) generate() (res *[]rune, err error) {
+func (tpl *Template) Generate() (res *[]rune, err error) {
 	for _, brace := range tpl.Braces {
 		rand.Seed(time.Now().Unix())
 		cnt := brace.rangelo + rand.Intn(brace.rangehi+1)
@@ -140,15 +140,15 @@ type Parser struct {
 	outputfilename string
 }
 
-func (parser *Parser) New(filename string) (*Parser, error) {
+func (parser *Parser) New(filename string) (error) {
 	crvfbytes, err := ioutil.ReadFile(parser.filename)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	parser.crvf = []rune(string(crvfbytes))
 	parser.cursor = 0
 	parser.eof = false
-	return parser, nil
+	return nil
 }
 
 func (parser *Parser) skipBlank() {
