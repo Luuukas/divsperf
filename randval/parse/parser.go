@@ -90,7 +90,8 @@ type Template struct {
 	Repeat int
 }
 
-func (tpl *Template) Generate() (res *[]rune, err error) {
+func (tpl *Template) Generate() (*[]rune, error) {
+	var res []rune
 	for _, brace := range tpl.Braces {
 		rand.Seed(time.Now().Unix())
 		cnt := brace.rangelo + rand.Intn(brace.rangehi+1)
@@ -100,11 +101,11 @@ func (tpl *Template) Generate() (res *[]rune, err error) {
 				if err != nil {
 					return nil, err
 				}
-				*res = append(*res, *ctn...)
+				res = append(res, *ctn...)
 			}
 		}
 	}
-	return
+	return &res, nil
 }
 
 // todo: 如果生成的数据太多，会占用太多内存，直接边生成边保存在文件中
@@ -135,20 +136,28 @@ type Parser struct {
 	filename string
 	crvf []rune
 	cursor int
-	eof bool
 	tpl Template
 	outputfilename string
 }
 
-func (parser *Parser) New(filename string) (error) {
-	crvfbytes, err := ioutil.ReadFile(parser.filename)
+func (parser *Parser) New(filename string) error {
+	parser.filename = filename
+	crvfbytes, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
 	}
 	parser.crvf = []rune(string(crvfbytes))
 	parser.cursor = 0
-	parser.eof = false
 	return nil
+}
+
+func (parser *Parser) meetNewLine(cursor int) bool {
+	if parser.crvf[cursor] == rune(13) {
+		if cursor+1 < len(parser.crvf) && parser.crvf[cursor+1] == rune(10) {
+			return true
+		}
+	}
+	return false
 }
 
 func (parser *Parser) skipBlank() {
@@ -156,13 +165,15 @@ func (parser *Parser) skipBlank() {
 	for parser.cursor < len(parser.crvf) {
 		r = parser.crvf[parser.cursor]
 		parser.cursor++
-		if r == ' ' || r == '\n' {
+		if r == rune(32){
+			continue
+		} else if parser.meetNewLine(parser.cursor-1) {
+			parser.cursor++
 			continue
 		}
 		parser.cursor--
 		break
 	}
-	parser.eof = parser.cursor == len(parser.crvf)
 }
 
 func (parser *Parser) getWord() *[]rune{
@@ -172,13 +183,15 @@ func (parser *Parser) getWord() *[]rune{
 	for parser.cursor < len(parser.crvf) {
 		r = parser.crvf[parser.cursor]
 		parser.cursor++
-		if r == ' ' || r == '\n' {
+		if r == ' ' {
+			break
+		} else if parser.meetNewLine(parser.cursor-1) {
+			parser.cursor++
 			break
 		} else {
 			rs = append(rs, r)
 		}
 	}
-	parser.eof = parser.cursor == len(parser.crvf)
 	return &rs
 }
 
@@ -232,7 +245,6 @@ func (parser *Parser) parseSettings() error {
 			return UnknownKeyword{}
 		}
 	}
-	parser.eof = true
 	return MissingRightBrace{}
 }
 
@@ -250,31 +262,35 @@ func (parser *Parser) skipAnnotation() {
 			} else {
 				space = false
 			}
-		} else if r == '\n' {
+		} else if parser.meetNewLine(parser.cursor-1) {
+			parser.cursor++
 			break
 		} else {
 			space = false
 		}
 	}
-	parser.eof = parser.cursor == len(parser.crvf)
 }
 
 type BraceCntSBError struct {}
 
 func (BraceCntSBError) Error() string {
-	return "error: there should be a [x ] or [x y ] following the brace.\n"
+	return "error: there should be a [ x ] or [ x y ] following the brace.\n"
 }
 
 func (parser *Parser) getRange() (lo int, hi int, err error) {
 	parser.skipBlank()
 	r := parser.crvf[parser.cursor]
+	parser.cursor++
 	if r == '[' {
 		parser.skipBlank()
 		var rangelo []rune
 		for parser.cursor < len(parser.crvf) {
 			r = parser.crvf[parser.cursor]
 			parser.cursor++
-			if r == ' ' || r == '\n' {
+			if r == ' ' {
+				break
+			} else if parser.meetNewLine(parser.cursor-1) {
+				parser.cursor++
 				break
 			}
 			rangelo = append(rangelo, r)
@@ -284,6 +300,7 @@ func (parser *Parser) getRange() (lo int, hi int, err error) {
 			return
 		}
 		parser.skipBlank()
+		r = parser.crvf[parser.cursor]
 		if r == ']' {
 			hi = lo
 			err = nil
@@ -293,16 +310,21 @@ func (parser *Parser) getRange() (lo int, hi int, err error) {
 		for parser.cursor < len(parser.crvf) {
 			r = parser.crvf[parser.cursor]
 			parser.cursor++
-			if r == ' ' || r == '\n' {
+			if r == ' ' {
+				break
+			} else if parser.meetNewLine(parser.cursor-1) {
+				parser.cursor++
 				break
 			}
-			rangelo = append(rangehi, r)
+			rangehi = append(rangehi, r)
 		}
 		hi, err = strconv.Atoi(string(rangehi))
 		if err != nil {
 			return
 		}
 		parser.skipBlank()
+		r := parser.crvf[parser.cursor]
+		parser.cursor++
 		if r == ']' {
 			return
 		} else {
@@ -348,12 +370,13 @@ func (parser *Parser) parseBrace() (*Brace, error) {
 						parser.cursor--
 						break
 					}
-				} else if r == '\n' {
+				} else if parser.meetNewLine(parser.cursor-1) {
 					if parser.crvf[parser.cursor-2] == '\\' {
-						cstr.str = cstr.str[:len(cstr.str)-2]
+						cstr.str = cstr.str[:len(cstr.str)-1]
 					} else {
 						cstr.str = append(cstr.str, '\n')
 					}
+					parser.cursor++
 				} else if r == '}' {
 					if parser.crvf[parser.cursor-2] == '\\' {
 						cstr.str = cstr.str[:len(cstr.str)-1]
@@ -366,6 +389,7 @@ func (parser *Parser) parseBrace() (*Brace, error) {
 					cstr.str = append(cstr.str, r)
 				}
 			}
+			fmt.Println(string(cstr.str))
 		}
 	}
 	return nil, MissingRightBrace{}
@@ -380,6 +404,7 @@ func (MissingRightSquareBracket) Error() string {
 func (parser *Parser) getToken() (*Token, error) {
 	parser.skipBlank()
 	var token Token
+	token.Content = new([]rune)
 	var err error
 	var r rune
 	r = parser.crvf[parser.cursor]
@@ -409,7 +434,6 @@ func (parser *Parser) getToken() (*Token, error) {
 				*token.Content = append(*token.Content, r)
 			}
 		}
-		parser.eof = true
 		return nil, MissingRightBrace{}
 	} else if r == '[' {
 		token.Ctype = SSB
@@ -420,6 +444,7 @@ func (parser *Parser) getToken() (*Token, error) {
 	} else if r == ']' {
 		return nil, nil
 	} else {
+		parser.cursor--
 		isFirst := true
 		isInt := false
 		isFlo := -1
@@ -428,11 +453,14 @@ func (parser *Parser) getToken() (*Token, error) {
 			parser.cursor++
 			*token.Content = append(*token.Content, r)
 			if r == ' ' {
+				*token.Content = (*token.Content)[:len(*token.Content)-1]
 				break
-			} else if r == '\n'{    // '\'跟个回车，会把下一行拼接到后面，而后忽略掉'\'
+			}  else if parser.meetNewLine(parser.cursor-1) {    // '\'跟个回车，会把下一行拼接到后面，而后忽略掉'\'
 				if parser.crvf[parser.cursor-2] == '\\' {
-					*token.Content = (*token.Content)[:len(*token.Content)-1]
+					*token.Content = (*token.Content)[:len(*token.Content)-2]
+					parser.cursor++
 				} else {
+					parser.cursor++
 					break
 				}
 			} else if r == '.' {
