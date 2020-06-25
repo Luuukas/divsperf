@@ -2,9 +2,7 @@ package udp
 
 import (
 	"fmt"
-	"io"
 	"net"
-	"os"
 	"time"
 )
 
@@ -41,18 +39,11 @@ func (udp *Udp) sr (wtimeout int, datars []rune, rtimeout int, rtimes int) error
 		return err
 	}
 	buf := make([]byte, 1024)
-	for {
-		n, err := os.Stdin.Read([]byte(string(datars)))
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
+	buf = []byte(string(datars))
+
+	_, err = conn.Write(buf)
+	if err != nil {
 			return err
-		}
-		_, err = conn.Write(buf[:n])
-		if err != nil {
-			return err
-		}
 	}
 	ssr.Sent_t = time.Now()
 	for rt:=0;rt<rtimes;rt++ {

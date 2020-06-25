@@ -39,5 +39,5 @@ func (*UseAddon) Action(wg *sync.WaitGroup, sb *scri_parse.SquareBrackets) error
 }
 
 func (*UseAddon) Name() string {
-	return "UseAddon"
+	return "use"
 }

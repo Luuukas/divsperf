@@ -2,12 +2,13 @@ package tools
 
 import (
 	"divsperf/script/parse"
+	"sync"
 )
 
 func RstoInt(rs []rune) (int, error) {
 	res := 0
 	for _, c := range rs {
-		res = res * 10 + int(c)
+		res = res * 10 + (int(c) - 48)
 	}
 	return res, nil
 }
@@ -24,9 +25,9 @@ func TKtoInt(tk parse.Token, name string, idx int) (int, error) {
 	return RstoInt(*tk.Content)
 }
 
-func TkContent(tk parse.Token) (*[]rune, error) {
+func TkContent(wg *sync.WaitGroup,tk parse.Token) (*[]rune, error) {
 	switch tk.Ctype {
-	case parse.SSB:
+	case parse.SBR:
 		fallthrough
 	case parse.INT:
 		fallthrough
@@ -35,7 +36,7 @@ func TkContent(tk parse.Token) (*[]rune, error) {
 	case parse.STR:
 		return tk.Content, nil
 	default:
-		data, err := tk.Sb.LetActionandReturn()
+		data, err := tk.Sb.LetActionandReturn(wg)
 		if err!= nil {
 			return nil, err
 		}

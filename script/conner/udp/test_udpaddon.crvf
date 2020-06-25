@@ -1,0 +1,8 @@
+Settings{
+    Template testudpaddon
+    Outputfile tttt.txt
+    Repeat 2
+}
+{
+[rand [rand 1 2 ] [rand 5 9 ] ]
+}[1 ]

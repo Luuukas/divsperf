@@ -17,6 +17,7 @@ type UdpAddon struct {
 
 func init() {
 	udpaddon := UdpAddon{}
+	udpaddon.Udps = make(map[string]*Udp)
 	script.Register(&udpaddon)
 }
 
@@ -96,15 +97,15 @@ func (udpap *UdpAddon) Action(wg *sync.WaitGroup, sb *parse.SquareBrackets) erro
 		if err != nil {
 			return err
 		}
-		data, err := tools.TkContent((*sb.Tokens)[3])
+		data, err := tools.TkContent(wg, (*sb.Tokens)[3])
 		if err != nil {
 			return err
 		}
-		rtimeout, err := tools.TKtoInt((*sb.Tokens)[2],sb.Name,2)
+		rtimeout, err := tools.TKtoInt((*sb.Tokens)[4],sb.Name,4)
 		if err != nil {
 			return err
 		}
-		rtimes, err := tools.TKtoInt((*sb.Tokens)[2],sb.Name,2)
+		rtimes, err := tools.TKtoInt((*sb.Tokens)[5],sb.Name,5)
 		if err != nil {
 			return err
 		}
