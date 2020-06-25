@@ -72,41 +72,53 @@ type Script struct {
 type Parser struct {
 	filename string
 	scri []rune
+	scri_len int
 	cursor int
-	eof bool
 	runner Script
 	outputfilename string
 }
 
 func (parser *Parser) New(filename string) (error) {
-	crvfbytes, err := ioutil.ReadFile(parser.filename)
+	parser.filename = filename
+	crvfbytes, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
 	}
 	parser.scri = []rune(string(crvfbytes))
+	parser.scri_len = len(parser.scri)
 	parser.cursor = 0
-	parser.eof = false
 	return nil
+}
+
+func (parser *Parser) meetNewLine(cursor int) bool {
+	if parser.scri[cursor] == rune(13) {
+		if cursor+1 < parser.scri_len && parser.scri[cursor+1] == rune(10) {
+			return true
+		}
+	}
+	return false
 }
 
 func (parser *Parser) skipBlank() {
 	var r rune
-	for parser.cursor < len(parser.scri) {
+	for parser.cursor < parser.scri_len {
 		r = parser.scri[parser.cursor]
 		parser.cursor++
-		if r == ' ' || r == '\n' {
+		if r == rune(32){
+			continue
+		} else if parser.meetNewLine(parser.cursor-1) {
+			parser.cursor++
 			continue
 		}
 		parser.cursor--
 		break
 	}
-	parser.eof = parser.cursor == len(parser.scri)
 }
 
 func (parser *Parser) skipAnnotation() {
 	var r rune
 	space := false
-	for parser.cursor < len(parser.scri) {
+	for parser.cursor < parser.scri_len {
 		r = parser.scri[parser.cursor]
 		parser.cursor++
 		if r == ' ' {
@@ -117,40 +129,42 @@ func (parser *Parser) skipAnnotation() {
 			} else {
 				space = false
 			}
-		} else if r == '\n' {
+		} else if parser.meetNewLine(parser.cursor-1) {
+			parser.cursor++
 			break
 		} else {
 			space = false
 		}
 	}
-	parser.eof = parser.cursor == len(parser.scri)
 }
 
 func (parser *Parser) getWord() *[]rune{
 	parser.skipBlank()
 	var rs []rune
 	var r rune
-	for parser.cursor < len(parser.scri) {
+	for parser.cursor < parser.scri_len {
 		r = parser.scri[parser.cursor]
 		parser.cursor++
-		if r == ' ' || r == '\n' {
+		if r == ' ' {
+			break
+		} else if parser.meetNewLine(parser.cursor-1) {
+			parser.cursor++
 			break
 		} else {
 			rs = append(rs, r)
 		}
 	}
-	parser.eof = parser.cursor == len(parser.scri)
 	return &rs
 }
 
 func (parser *Parser) parseSettings() error {
-	for parser.cursor < len(parser.scri) {
+	for parser.cursor < parser.scri_len {
 		rsp := parser.getWord()
 		rs_str := string(*rsp)
 		switch rs_str {
 		case "#":
 			parser.skipAnnotation()
-		case "Template":
+		case "Script":
 			arg := parser.getWord()
 			parser.runner.Name = string(*arg)
 			if parser.runner.Name == "" {
@@ -162,20 +176,23 @@ func (parser *Parser) parseSettings() error {
 			return UnknownKeyword{}
 		}
 	}
-	parser.eof = true
 	return MissingRightBrace{}
 }
 
 func (parser *Parser) getRange() (lo int, hi int, err error) {
 	parser.skipBlank()
 	r := parser.scri[parser.cursor]
+	parser.cursor++
 	if r == '[' {
 		parser.skipBlank()
 		var rangelo []rune
-		for parser.cursor < len(parser.scri) {
+		for parser.cursor < parser.scri_len {
 			r = parser.scri[parser.cursor]
 			parser.cursor++
-			if r == ' ' || r == '\n' {
+			if r == ' ' {
+				break
+			} else if parser.meetNewLine(parser.cursor-1) {
+				parser.cursor++
 				break
 			}
 			rangelo = append(rangelo, r)
@@ -185,25 +202,32 @@ func (parser *Parser) getRange() (lo int, hi int, err error) {
 			return
 		}
 		parser.skipBlank()
+		r = parser.scri[parser.cursor]
 		if r == ']' {
 			hi = lo
 			err = nil
+			parser.cursor++
 			return
 		}
 		var rangehi []rune
-		for parser.cursor < len(parser.scri) {
+		for parser.cursor < parser.scri_len {
 			r = parser.scri[parser.cursor]
 			parser.cursor++
-			if r == ' ' || r == '\n' {
+			if r == ' ' {
+				break
+			} else if parser.meetNewLine(parser.cursor-1) {
+				parser.cursor++
 				break
 			}
-			rangelo = append(rangehi, r)
+			rangehi = append(rangehi, r)
 		}
 		hi, err = strconv.Atoi(string(rangehi))
 		if err != nil {
 			return
 		}
 		parser.skipBlank()
+		r := parser.scri[parser.cursor]
+		parser.cursor++
 		if r == ']' {
 			return
 		} else {
@@ -219,7 +243,7 @@ func (parser *Parser) getRange() (lo int, hi int, err error) {
 func (parser *Parser) parseLevel() (int, error) {
 	parser.skipBlank()
 	var r rune
-	if parser.cursor < len(parser.scri) {
+	if parser.cursor < parser.scri_len {
 		r = parser.scri[parser.cursor]
 		parser.cursor++
 		if r != '[' {
@@ -241,7 +265,7 @@ func (parser *Parser) parseLevel() (int, error) {
 		return -1, LevelGettingError{}
 	}
 	parser.skipBlank()
-	if parser.cursor < len(parser.scri) {
+	if parser.cursor < parser.scri_len {
 		r = parser.scri[parser.cursor]
 		parser.cursor++
 		if r != ']' {
@@ -256,6 +280,7 @@ func (parser *Parser) parseLevel() (int, error) {
 func (parser *Parser) parseSquareBrackets() (*SquareBrackets, error) {
 	var sb SquareBrackets
 	sb.Name = string(*parser.getWord())
+	sb.Tokens = new([]Token)
 	for {
 		token, err := parser.getToken()
 		if err != nil {
@@ -271,6 +296,7 @@ func (parser *Parser) parseSquareBrackets() (*SquareBrackets, error) {
 func (parser *Parser) getToken() (*Token, error) {
 	parser.skipBlank()
 	var token Token
+	token.Content = new([]rune)
 	var err error
 	var r rune
 	r = parser.scri[parser.cursor]
@@ -278,7 +304,7 @@ func (parser *Parser) getToken() (*Token, error) {
 	if r == '{' {
 		left_brace_cnt := 1
 		token.Ctype = SBR
-		for parser.cursor < len(parser.scri) {
+		for parser.cursor < parser.scri_len {
 			r = parser.scri[parser.cursor]
 			parser.cursor++
 			switch r {
@@ -300,7 +326,6 @@ func (parser *Parser) getToken() (*Token, error) {
 				*token.Content = append(*token.Content, r)
 			}
 		}
-		parser.eof = true
 		return nil, MissingRightBrace{}
 	} else if r == '[' {
 		token.Ctype = SSB
@@ -311,19 +336,24 @@ func (parser *Parser) getToken() (*Token, error) {
 	} else if r == ']' {
 		return nil, nil
 	} else {
+		parser.cursor--
 		isFirst := true
 		isInt := false
 		isFlo := -1
-		for parser.cursor < len(parser.scri) {
+		for parser.cursor < parser.scri_len {
 			r = parser.scri[parser.cursor]
 			parser.cursor++
 			*token.Content = append(*token.Content, r)
 			if r == ' ' {
+				*token.Content = (*token.Content)[:len(*token.Content)-1]
 				break
-			} else if r == '\n'{    // '\'跟个回车，会把下一行拼接到后面，而后忽略掉'\'
+			}  else if parser.meetNewLine(parser.cursor-1) {    // '\'跟个回车，会把下一行拼接到后面，而后忽略掉'\'
 				if parser.scri[parser.cursor-2] == '\\' {
-					*token.Content = (*token.Content)[:len(*token.Content)-1]
+					*token.Content = (*token.Content)[:len(*token.Content)-2]
+					parser.cursor++
 				} else {
+					*token.Content = (*token.Content)[:len(*token.Content)-1]
+					parser.cursor++
 					break
 				}
 			} else if r == '.' {
@@ -361,7 +391,8 @@ func (parser *Parser) parseBrace() (*Brace, error) {
 	var brace Brace
 	var r rune
 	var err error
-	for parser.cursor < len(parser.scri) {
+	for parser.cursor < parser.scri_len {
+		parser.skipBlank()
 		r = parser.scri[parser.cursor]
 		parser.cursor++
 		if r == '[' {
@@ -389,7 +420,7 @@ func (parser *Parser) parseBrace() (*Brace, error) {
 
 func (parser *Parser) Parse() error {
 	Settings_cnt := 0
-	for parser.cursor < len(parser.scri) {
+	for parser.cursor < parser.scri_len {
 		kw := parser.getWord()
 		kw_str := string(*kw)
 		switch kw_str {

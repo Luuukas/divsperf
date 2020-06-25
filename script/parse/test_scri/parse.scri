@@ -1,0 +1,23 @@
+# 单个井号跟个空格，把该行，其后的所有内容忽略
+# 单个井号跟个空格，单个空格跟个井号，把中间的内容忽略 #
+Settings{
+    Script serverperf1
+}
+# annotation #
+{
+    [udp st uuudddppp 127.0.0.1 53 ]
+    [xxanalyzer st wowres uuudddppp ]
+    [xxanalyzer ed wowres ]
+}[0 ][Lv 0 ]
+# annotation #
+# annotation
+# annotation #
+{
+    [cpu be cccpppuuu ]
+
+    [parallel 500
+        [udp sr uuudddppp 500 [use templatename ] 500 1 ]
+    ]
+
+    [cpu ed cccpppuuu cpustate ]
+}[2 ][Lv 1 ]

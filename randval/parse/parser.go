@@ -136,6 +136,7 @@ var (
 type Parser struct {
 	filename string
 	crvf []rune
+	crvf_len int
 	cursor int
 	tpl Template
 	outputfilename string
@@ -148,13 +149,14 @@ func (parser *Parser) New(filename string) error {
 		return err
 	}
 	parser.crvf = []rune(string(crvfbytes))
+	parser.crvf_len = len(parser.crvf)
 	parser.cursor = 0
 	return nil
 }
 
 func (parser *Parser) meetNewLine(cursor int) bool {
 	if parser.crvf[cursor] == rune(13) {
-		if cursor+1 < len(parser.crvf) && parser.crvf[cursor+1] == rune(10) {
+		if cursor+1 < parser.crvf_len && parser.crvf[cursor+1] == rune(10) {
 			return true
 		}
 	}
@@ -163,7 +165,7 @@ func (parser *Parser) meetNewLine(cursor int) bool {
 
 func (parser *Parser) skipBlank() {
 	var r rune
-	for parser.cursor < len(parser.crvf) {
+	for parser.cursor < parser.crvf_len {
 		r = parser.crvf[parser.cursor]
 		parser.cursor++
 		if r == rune(32){
@@ -181,7 +183,7 @@ func (parser *Parser) getWord() *[]rune{
 	parser.skipBlank()
 	var rs []rune
 	var r rune
-	for parser.cursor < len(parser.crvf) {
+	for parser.cursor < parser.crvf_len {
 		r = parser.crvf[parser.cursor]
 		parser.cursor++
 		if r == ' ' {
@@ -215,7 +217,7 @@ func (MissingRightBrace) Error() string {
 }
 
 func (parser *Parser) parseSettings() error {
-	for parser.cursor < len(parser.crvf) {
+	for parser.cursor < parser.crvf_len {
 		rsp := parser.getWord()
 		rs_str := string(*rsp)
 		switch rs_str {
@@ -252,7 +254,7 @@ func (parser *Parser) parseSettings() error {
 func (parser *Parser) skipAnnotation() {
 	var r rune
 	space := false
-	for parser.cursor < len(parser.crvf) {
+	for parser.cursor < parser.crvf_len {
 		r = parser.crvf[parser.cursor]
 		parser.cursor++
 		if r == ' ' {
@@ -285,7 +287,7 @@ func (parser *Parser) getRange() (lo int, hi int, err error) {
 	if r == '[' {
 		parser.skipBlank()
 		var rangelo []rune
-		for parser.cursor < len(parser.crvf) {
+		for parser.cursor < parser.crvf_len {
 			r = parser.crvf[parser.cursor]
 			parser.cursor++
 			if r == ' ' {
@@ -309,7 +311,7 @@ func (parser *Parser) getRange() (lo int, hi int, err error) {
 			return
 		}
 		var rangehi []rune
-		for parser.cursor < len(parser.crvf) {
+		for parser.cursor < parser.crvf_len {
 			r = parser.crvf[parser.cursor]
 			parser.cursor++
 			if r == ' ' {
@@ -343,7 +345,7 @@ func (parser *Parser) parseBrace() (*Brace, error) {
 	var brace Brace
 	var r rune
 	var err error
-	for parser.cursor < len(parser.crvf) {
+	for parser.cursor < parser.crvf_len {
 		r = parser.crvf[parser.cursor]
 		parser.cursor++
 		if r == '[' {
@@ -361,7 +363,7 @@ func (parser *Parser) parseBrace() (*Brace, error) {
 		} else {
 			var cstr ConstStr
 			cstr.str = append(cstr.str, r)
-			for parser.cursor < len(parser.crvf) {
+			for parser.cursor < parser.crvf_len {
 				r = parser.crvf[parser.cursor]
 				parser.cursor++
 				if r == '[' {
@@ -392,7 +394,6 @@ func (parser *Parser) parseBrace() (*Brace, error) {
 					cstr.str = append(cstr.str, r)
 				}
 			}
-			fmt.Println(string(cstr.str))
 		}
 	}
 	return nil, MissingRightBrace{}
@@ -415,7 +416,7 @@ func (parser *Parser) getToken() (*Token, error) {
 	if r == '{' {
 		left_brace_cnt := 1
 		token.Ctype = SBR
-		for parser.cursor < len(parser.crvf) {
+		for parser.cursor < parser.crvf_len {
 			r = parser.crvf[parser.cursor]
 			parser.cursor++
 			switch r {
@@ -451,7 +452,7 @@ func (parser *Parser) getToken() (*Token, error) {
 		isFirst := true
 		isInt := false
 		isFlo := -1
-		for parser.cursor < len(parser.crvf) {
+		for parser.cursor < parser.crvf_len {
 			r = parser.crvf[parser.cursor]
 			parser.cursor++
 			*token.Content = append(*token.Content, r)
@@ -463,6 +464,7 @@ func (parser *Parser) getToken() (*Token, error) {
 					*token.Content = (*token.Content)[:len(*token.Content)-2]
 					parser.cursor++
 				} else {
+					*token.Content = (*token.Content)[:len(*token.Content)-1]
 					parser.cursor++
 					break
 				}
@@ -529,7 +531,7 @@ func (FLParseError) Error() string {
 func (parser *Parser) Parse() error {
 	Settings_cnt := 0
 	var preBr *Br = nil
-	for parser.cursor < len(parser.crvf) {
+	for parser.cursor < parser.crvf_len {
 		kw := parser.getWord()
 		kw_str := string(*kw)
 		switch kw_str {
