@@ -51,6 +51,13 @@ func (daeraddon *DnsAnalyzerAddon) Action(wg *sync.WaitGroup, sb *parse.SquareBr
 				len(*sb.Tokens),
 			}
 		}
+		udpname := string(*(*sb.Tokens)[2].Content)
+		var daer DnsAnalyzer
+		err := daer.st(name, udpname)
+		if err != nil {
+			return err
+		}
+		daeraddon.DnsAnalyzers[name] = &daer
 	case "be":
 		if len(*sb.Tokens) != 2 {
 			return parse.UnmatchError_number_of_parameters{
@@ -58,6 +65,10 @@ func (daeraddon *DnsAnalyzerAddon) Action(wg *sync.WaitGroup, sb *parse.SquareBr
 				2,
 				len(*sb.Tokens),
 			}
+		}
+		err := daeraddon.DnsAnalyzers[name].be()
+		if err != nil {
+			return err
 		}
 	case "ed":
 		if len(*sb.Tokens) != 2 {
@@ -67,6 +78,10 @@ func (daeraddon *DnsAnalyzerAddon) Action(wg *sync.WaitGroup, sb *parse.SquareBr
 				len(*sb.Tokens),
 			}
 		}
+		err := daeraddon.DnsAnalyzers[name].ed()
+		if err != nil {
+			return err
+		}
 	case "ce":
 		if len(*sb.Tokens) != 2 {
 			return parse.UnmatchError_number_of_parameters{
@@ -74,6 +89,10 @@ func (daeraddon *DnsAnalyzerAddon) Action(wg *sync.WaitGroup, sb *parse.SquareBr
 				2,
 				len(*sb.Tokens),
 			}
+		}
+		err := daeraddon.DnsAnalyzers[name].ce()
+		if err != nil {
+			return err
 		}
 	default:
 		return UnknownDirective{
@@ -84,5 +103,5 @@ func (daeraddon *DnsAnalyzerAddon) Action(wg *sync.WaitGroup, sb *parse.SquareBr
 }
 
 func (*DnsAnalyzerAddon) Name() string {
-	return "DnsAnalyzerAddon"
+	return "analyzer"
 }

@@ -44,5 +44,5 @@ func (*ParallelAddon) Action(wg *sync.WaitGroup, sb *parse.SquareBrackets) error
 }
 
 func (*ParallelAddon) Name() string {
-	return "ParallelAddon"
+	return "parallel"
 }

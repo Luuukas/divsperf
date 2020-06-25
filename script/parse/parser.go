@@ -450,7 +450,7 @@ func (parser *Parser) Parse() error {
 	return nil
 }
 
-func (parser *Parser) registerScript() {
+func (parser *Parser) RegisterScript() {
 	if _, ok := Scripts[parser.runner.Name]; !ok {
 		Scripts[parser.runner.Name] = &parser.runner
 	}

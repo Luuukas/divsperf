@@ -1,5 +1,7 @@
 package udp
 
+// need to run divsperf\script\conner\udp\test_udp_echo.exe first
+
 import (
 	_ "divsperf/randval/create/rand"
 	crvf_parse "divsperf/randval/parse"

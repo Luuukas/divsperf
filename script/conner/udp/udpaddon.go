@@ -120,5 +120,5 @@ func (udpap *UdpAddon) Action(wg *sync.WaitGroup, sb *parse.SquareBrackets) erro
 }
 
 func (*UdpAddon) Name() string {
-	return "UdpAddon"
+	return "udp"
 }

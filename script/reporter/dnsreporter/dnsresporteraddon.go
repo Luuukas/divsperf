@@ -47,5 +47,5 @@ func (*DnsResporterAddon) Action(wg *sync.WaitGroup, sb *parse.SquareBrackets) e
 }
 
 func (*DnsResporterAddon) Name() string {
-	return "DnsResporterAddon"
+	return "reporter"
 }

@@ -38,5 +38,7 @@ func main() {
 	checkError(err)
 
 	//go recvUDPMsg(conn)
-	recvUDPMsg(conn)
+	for {
+    	recvUDPMsg(conn)
+    }
 }
