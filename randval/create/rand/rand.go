@@ -39,7 +39,7 @@ func (*Rand) Generate(sb parse.SquareBrackets) (*[]rune, error) {
 	r_str := strconv.Itoa(r)
 	var res []rune
 	for _, c := range r_str {
-		res = append(res, c-'0')
+		res = append(res, c)
 	}
 	return &res, nil
 }

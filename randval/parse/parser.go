@@ -93,16 +93,18 @@ type Template struct {
 
 func (tpl *Template) Generate() (*[]rune, error) {
 	var res []rune
-	for _, brace := range tpl.Braces {
-		rand.Seed(time.Now().Unix())
-		cnt := brace.rangelo + rand.Intn(brace.rangehi+1)
-		for i:=0;i<cnt;i++ {
-			for _, ct := range brace.Cts {
-				ctn, err := ct.GetContent()
-				if err != nil {
-					return nil, err
+	for bt:=0;bt<tpl.Repeat;bt++ {
+		for _, brace := range tpl.Braces {
+			rand.Seed(time.Now().Unix())
+			cnt := brace.rangelo + rand.Intn(brace.rangehi-brace.rangelo+1)
+			for i := 0; i < cnt; i++ {
+				for _, ct := range brace.Cts {
+					ctn, err := ct.GetContent()
+					if err != nil {
+						return nil, err
+					}
+					res = append(res, *ctn...)
 				}
-				res = append(res, *ctn...)
 			}
 		}
 	}
@@ -591,7 +593,7 @@ func (parser *Parser) Parse() error {
 	return nil
 }
 
-func (parser *Parser) registerTemplate() {
+func (parser *Parser) RegisterTemplate() {
 	if _, ok := Templates[parser.tpl.Name]; !ok {
 		Templates[parser.tpl.Name] = &parser.tpl
 	}
