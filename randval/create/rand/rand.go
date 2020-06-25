@@ -35,7 +35,7 @@ func (*Rand) Generate(sb parse.SquareBrackets) (*[]rune, error) {
 		return nil, err
 	}
 	mrand.Seed(time.Now().Unix())
-	r := l + mrand.Intn(h+1)
+	r := l + mrand.Intn(h-l+1)
 	r_str := strconv.Itoa(r)
 	var res []rune
 	for _, c := range r_str {

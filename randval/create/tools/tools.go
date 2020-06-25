@@ -5,7 +5,7 @@ import "divsperf/randval/parse"
 func RstoInt(rs []rune) (int, error) {
 	res := 0
 	for _, c := range rs {
-		res = res * 10 + int(c)
+		res = res * 10 + (int(c) - 48)
 	}
 	return res, nil
 }

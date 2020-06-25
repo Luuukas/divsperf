@@ -59,9 +59,10 @@ type Br struct {
 func (br *Br) GetContent() ( *[]rune, error) {
 	var res []rune
 	rand.Seed(time.Now().Unix())
-	cnt := br.rangelo + rand.Intn(br.rangehi+1)
+	cnt := br.rangelo + rand.Intn(br.rangehi - br.rangelo + 1)
 	for i:=0; i<cnt; i++ {
-		res = append(res, '\n')
+		res = append(res, 13)
+		res = append(res, 10)
 	}
 	return &res, nil
 }
@@ -304,6 +305,7 @@ func (parser *Parser) getRange() (lo int, hi int, err error) {
 		if r == ']' {
 			hi = lo
 			err = nil
+			parser.cursor++
 			return
 		}
 		var rangehi []rune
@@ -383,6 +385,7 @@ func (parser *Parser) parseBrace() (*Brace, error) {
 						cstr.str = append(cstr.str, '}')
 					} else {
 						parser.cursor--
+						brace.Cts = append(brace.Cts, &cstr)
 						break
 					}
 				} else {
@@ -497,6 +500,7 @@ func (parser *Parser) getToken() (*Token, error) {
 func (parser *Parser) parseSquareBrackets() (*SquareBrackets, error) {
 	var sb SquareBrackets
 	sb.Name = string(*parser.getWord())
+	sb.Tokens = new([]Token)
 	for {
 		token, err := parser.getToken()
 		if err != nil {
