@@ -29,6 +29,7 @@ func (udp *Udp) st (ip string, port int) error {
 }
 
 func (udp *Udp) sr (wtimeout int, datars []rune, rtimeout int, rtimes int) error {
+	udp.Srcnt++
 	ssr := SuccessSR{}
 	conn, err := net.Dial("udp", fmt.Sprintf("%s:%d", udp.IP, udp.Port))
 	if err != nil {
@@ -60,6 +61,7 @@ func (udp *Udp) sr (wtimeout int, datars []rune, rtimeout int, rtimes int) error
 		ssr.Datas = append(ssr.Datas, buf[:n])
 	}
 	udp.Succs <- &ssr
+	udp.Srsucccnt++
 	return nil
 }
 

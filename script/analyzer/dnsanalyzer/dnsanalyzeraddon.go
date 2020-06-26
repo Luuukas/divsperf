@@ -12,6 +12,7 @@ type DnsAnalyzerAddon struct {
 
 func init() {
 	daeraddon := DnsAnalyzerAddon{}
+	daeraddon.DnsAnalyzers = make(map[string] *DnsAnalyzer)
 	script.Register(&daeraddon)
 }
 

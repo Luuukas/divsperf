@@ -54,7 +54,7 @@ func (daer *DnsAnalyzer) st(name string, udpname string) error {
 			name,
 		}
 	}
-	daer.dnsServer = parse.Addons["UdpAddon"].(*udp.UdpAddon).Udps[udpname]
+	daer.dnsServer = parse.Addons["udp"].(*udp.UdpAddon).Udps[udpname]
 	daer.Srcntp = &daer.dnsServer.Srcnt
 	daer.Srsucccntp = &daer.dnsServer.Srsucccnt
 	daer.done = make(chan struct{})

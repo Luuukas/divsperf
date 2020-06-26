@@ -53,5 +53,21 @@ func TestDnsAnalyzerAddon_Action(t *testing.T) {
 	if err != nil {
 		return
 	}
+	err = parse_scri.Scripts["testdnsanalyzeraddonscri"].Braces[0].Sbs[2].LetAction(wg)
+	if err != nil {
+		return
+	}
+	err = parse_scri.Scripts["testdnsanalyzeraddonscri"].Braces[0].Sbs[3].LetAction(wg)
+	if err != nil {
+		return
+	}
+	err = parse_scri.Scripts["testdnsanalyzeraddonscri"].Braces[0].Sbs[4].LetAction(wg)
+	if err != nil {
+		return
+	}
 	wg.Wait()
+	analyzer := parse_scri.Addons["analyzer"].(*DnsAnalyzerAddon).DnsAnalyzers["udpana"]
+	fmt.Println(analyzer.Name)
+	fmt.Println(*analyzer.Srcntp)
+	fmt.Println(*analyzer.Srsucccntp)
 }

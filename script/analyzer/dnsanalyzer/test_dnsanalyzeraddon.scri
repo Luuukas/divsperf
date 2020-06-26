@@ -3,7 +3,10 @@ Settings{
 }
 {
     [udp st uuddpp 127.0.0.1 11110 ]
+    [analyzer st udpana uuddpp ]
+    [analyzer be udpana ]
     [parallel 5
         [udp sr uuddpp 500 [use dnsbinary ] 500 1 ]
     ]
+    [analyzer ed udpana ]
 }[1 ][Lv 1 ]
