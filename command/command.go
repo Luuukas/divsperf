@@ -6,6 +6,8 @@ import (
 	scri_parse "divsperf/script/parse"
 	"fmt"
 	"log"
+
+	//"log"
 	"math/rand"
 	"os"
 	"strings"
@@ -18,13 +20,14 @@ import (
 
 func Processing() {
 	for {
+		fmt.Print("> ")
 		fmt.Scan()
 		// 从stdin中取内容直到遇到换行符，停止
 		input, err := bufio.NewReader(os.Stdin).ReadString('\n')
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println("你输入的内容是：", strings.TrimSpace(input))
+		fmt.Println("echo: ", strings.TrimSpace(input))
 		words := strings.Fields(input)
 		switch words[0] {
 		case "readcrvf":
@@ -42,6 +45,7 @@ func Processing() {
 			if err != nil {
 				fmt.Println(err)
 			}
+			crvf_parser.RegisterTemplate()
 		case "readscri":
 			if len(words) != 2 {
 				fmt.Println("usage: readscri xxx.scri")
@@ -57,6 +61,7 @@ func Processing() {
 			if err != nil {
 				fmt.Println(err)
 			}
+			scri_parser.RegisterScript()
 		case "run":
 			if len(words) != 1 {
 				fmt.Println("usage: run")
@@ -66,7 +71,6 @@ func Processing() {
 		default:
 			fmt.Println("invalid command")
 		}
-		fmt.Print("> ")
 	}
 }
 
@@ -74,15 +78,18 @@ func RunScripts() {
 	for l, LCp := range scri_parse.Levels {
 		wg := &sync.WaitGroup{}
 		for LCp != nil {
+			wg.Add(1)
+			tLCp := LCp
 			go func() {
-				wg.Add(1)
 				defer wg.Done()
 				rand.Seed(time.Now().Unix())
-				rt := LCp.SittingB.Rangelo + rand.Intn(LCp.SittingB.Rangehi+1)
+				rt := tLCp.SittingB.Rangelo + rand.Intn(tLCp.SittingB.Rangehi-tLCp.SittingB.Rangelo+1)
 				for t:=0;t<rt;t++ {
-					for _, sb := range LCp.SittingB.Sbs {
+					for _, sb := range tLCp.SittingB.Sbs {
 						err := sb.LetAction(wg)
-						log.Printf("error: runscript - level: %d %s - %v",l,sb.Name,err)
+						if err != nil {
+							log.Printf("error: runscript - level: %d %s - %v", l, sb.Name, err)
+						}
 					}
 				}
 			}()

@@ -37,6 +37,8 @@
 
 目前的进度是基本实现了整个架构，对各个部分进行了少量测试，基本保证功能的正确性。但目前完成的插件的开发仅针对dns压测。
 
+![dns_effect_0](.\effectpics\dns_effect_0.png)
+
 # Problems to be solved
 
 1. 控制台终止读取解析或终止脚本运行的后果未知

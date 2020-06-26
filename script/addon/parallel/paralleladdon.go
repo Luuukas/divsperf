@@ -31,18 +31,24 @@ func (*ParallelAddon) Action(wg *sync.WaitGroup, sb *parse.SquareBrackets) error
 		return err
 	}
 	wg.Add(pt)
+	wg_in := &sync.WaitGroup{}
+	wg_in.Add(pt)
 	for t:=0;t<pt;t++ {
+		tks := (*(sb.Tokens))[1:]
 		go func() {
-			defer wg.Done()
-			for _, tk := range (*(sb.Tokens))[1:] {
-				fmt.Println(tk.Sb.Name)
-				if err=tk.Sb.LetAction(wg); err != nil {
+			defer func() {
+				wg.Done()
+				wg_in.Done()
+			}()
+			for _, tk := range tks {
+				if err=tk.Sb.LetAction(wg_in); err != nil {
 					fmt.Println("error in parallel: ",err)
 					return
 				}
 			}
 		}()
 	}
+	wg_in.Wait()
 	return nil
 }
 

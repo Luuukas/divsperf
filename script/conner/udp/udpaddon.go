@@ -4,6 +4,7 @@ import (
 	"divsperf/script"
 	"divsperf/script/parse"
 	"divsperf/script/tools"
+	"log"
 	"sync"
 )
 
@@ -58,7 +59,7 @@ func (udpap *UdpAddon) Action(wg *sync.WaitGroup, sb *parse.SquareBrackets) erro
 			}
 		}
 		if _, ok:=udpap.Udps[name]; ok {
-			return DuplicatedUdp{sb.Name, name}
+			log.Printf("warning: the udp named %s had been set up, the old one will be used.\n", name)
 		}
 		if (*sb.Tokens)[2].Ctype != parse.STR {
 			return parse.UnmatchError_parameter_type{

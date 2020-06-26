@@ -1,0 +1,13 @@
+Settings{
+    Script dnsperf
+}
+{
+    [udp st uuddpp 8.8.8.8 53 ]
+    [analyzer st udpana uuddpp ]
+    [analyzer be udpana ]
+    [parallel 2
+        [udp sr uuddpp 2000 [use dnsquery ] 2000 1 ]
+    ]
+    [analyzer ed udpana ]
+    [reporter udpana output ]
+}[1 ][Lv 0 ]

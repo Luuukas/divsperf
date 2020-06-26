@@ -14,7 +14,7 @@ const (
 
 func main() {
 	ShowVersion()
-	go command.Processing()
+	command.Processing()
 }
 
 func ShowVersion() {
