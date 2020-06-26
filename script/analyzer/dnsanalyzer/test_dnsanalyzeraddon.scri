@@ -1,0 +1,9 @@
+Settings{
+    Script testdnsanalyzeraddonscri
+}
+{
+    [udp st uuddpp 127.0.0.1 11110 ]
+    [parallel 5
+        [udp sr uuddpp 500 [use dnsbinary ] 500 1 ]
+    ]
+}[1 ][Lv 1 ]

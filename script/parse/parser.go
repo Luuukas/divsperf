@@ -307,9 +307,8 @@ func (parser *Parser) getToken() (*Token, error) {
 		for parser.cursor < parser.scri_len {
 			r = parser.scri[parser.cursor]
 			parser.cursor++
-			switch r {
-			case '}':
-				if !(parser.cursor>1 && parser.scri[parser.cursor-2] == '\\') {
+			if r == '}' {
+				if !(parser.cursor > 1 && parser.scri[parser.cursor-2] == '\\') {
 					left_brace_cnt--
 				}
 				if left_brace_cnt == 0 {
@@ -317,12 +316,20 @@ func (parser *Parser) getToken() (*Token, error) {
 				} else {
 					*token.Content = append(*token.Content, '}')
 				}
-			case '{':
-				if !(parser.cursor>1 && parser.scri[parser.cursor-2] == '\\') {
+			} else if r == '{' {
+				if !(parser.cursor > 1 && parser.scri[parser.cursor-2] == '\\') {
 					left_brace_cnt++
 				}
 				*token.Content = append(*token.Content, '{')
-			default:
+			}  else if parser.meetNewLine(parser.cursor-1) {    // '\'跟个回车，会把下一行拼接到后面，而后忽略掉'\'
+				if parser.scri[parser.cursor-2] == '\\' {
+					*token.Content = (*token.Content)[:len(*token.Content)-1]
+				} else {
+					*token.Content = append(*token.Content, 13)
+					*token.Content = append(*token.Content, 10)
+				}
+				parser.cursor++
+			} else {
 				*token.Content = append(*token.Content, r)
 			}
 		}

@@ -3,8 +3,10 @@ package dnsanalyzer
 import (
 	"divsperf/script/conner/udp"
 	"divsperf/script/parse"
-	"github.com/miekg/dns"
-	"math"
+	"fmt"
+
+	//"github.com/miekg/dns"
+	//"math"
 	"time"
 )
 
@@ -22,27 +24,27 @@ type DnsAnalyzer struct {
 	Rcode_cnt map[int] int
 }
 
-func (daer *DnsAnalyzer) analyze(ssr *udp.SuccessSR) error {
-	var RTT float64 = float64(ssr.Recv_t[0].UnixNano()-ssr.Sent_t.UnixNano())/1000000000
-	if daer.RTT_max==-1 {
-		daer.RTT_max = RTT
-	}else {
-		daer.RTT_max = math.Max(daer.RTT_max, RTT)
-	}
-	if daer.RTT_min==-1 {
-		daer.RTT_min = RTT
-	}else {
-		daer.RTT_min = math.Max(daer.RTT_min, RTT)
-	}
-	daer.RTT_tot += RTT
-	msg := new(dns.Msg)
-	msg.Unpack(ssr.Datas[0])
-	if _, ok := daer.Rcode_cnt[msg.Rcode]; !ok {
-		daer.Rcode_cnt[msg.Rcode] = 0
-	}
-	daer.Rcode_cnt[msg.Rcode]++
-	return nil
-}
+//func (daer *DnsAnalyzer) analyze(ssr *udp.SuccessSR) error {
+//	var RTT float64 = float64(ssr.Recv_t[0].UnixNano()-ssr.Sent_t.UnixNano())/1000000000
+//	if daer.RTT_max==-1 {
+//		daer.RTT_max = RTT
+//	}else {
+//		daer.RTT_max = math.Max(daer.RTT_max, RTT)
+//	}
+//	if daer.RTT_min==-1 {
+//		daer.RTT_min = RTT
+//	}else {
+//		daer.RTT_min = math.Max(daer.RTT_min, RTT)
+//	}
+//	daer.RTT_tot += RTT
+//	msg := new(dns.Msg)
+//	msg.Unpack(ssr.Datas[0])
+//	if _, ok := daer.Rcode_cnt[msg.Rcode]; !ok {
+//		daer.Rcode_cnt[msg.Rcode] = 0
+//	}
+//	daer.Rcode_cnt[msg.Rcode]++
+//	return nil
+//}
 
 func (daer *DnsAnalyzer) st(name string, udpname string) error {
 	if daer.dnsServer != nil {
@@ -66,7 +68,10 @@ func (daer *DnsAnalyzer) be() error {
 		case <-daer.done:
 			return
 		case ssr:=<-daer.dnsServer.Succs:
-			daer.analyze(ssr)
+			//daer.analyze(ssr)
+			fmt.Println(ssr.Sent_t)
+			fmt.Println(ssr.Recv_t[0])
+			fmt.Println(ssr.Datas[0])
 		}
 	}()
 	return nil

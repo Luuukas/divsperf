@@ -2,15 +2,18 @@ package command
 
 import (
 	"bufio"
+	crvf_parse "divsperf/randval/parse"
+	scri_parse "divsperf/script/parse"
 	"fmt"
 	"log"
 	"math/rand"
 	"os"
 	"strings"
-	crvf_parse "divsperf/randval/parse"
-	scri_parse "divsperf/script/parse"
 	"sync"
 	"time"
+
+	_ "divsperf/randval/setup"
+	_ "divsperf/script/setup"
 )
 
 func Processing() {
@@ -59,6 +62,7 @@ func Processing() {
 				fmt.Println("usage: run")
 				break
 			}
+			RunScripts()
 		default:
 			fmt.Println("invalid command")
 		}

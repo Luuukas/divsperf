@@ -4,6 +4,7 @@ import (
 	"divsperf/script"
 	"divsperf/script/parse"
 	"divsperf/script/tools"
+	"fmt"
 	"sync"
 )
 
@@ -29,12 +30,14 @@ func (*ParallelAddon) Action(wg *sync.WaitGroup, sb *parse.SquareBrackets) error
 	if err != nil {
 		return err
 	}
+	wg.Add(pt)
 	for t:=0;t<pt;t++ {
 		go func() {
-			wg.Add(1)
 			defer wg.Done()
 			for _, tk := range (*(sb.Tokens))[1:] {
+				fmt.Println(tk.Sb.Name)
 				if err=tk.Sb.LetAction(wg); err != nil {
+					fmt.Println("error in parallel: ",err)
 					return
 				}
 			}

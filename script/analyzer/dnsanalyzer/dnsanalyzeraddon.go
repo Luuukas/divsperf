@@ -100,6 +100,7 @@ func (daeraddon *DnsAnalyzerAddon) Action(wg *sync.WaitGroup, sb *parse.SquareBr
 			dir,
 		}
 	}
+	return nil
 }
 
 func (*DnsAnalyzerAddon) Name() string {
