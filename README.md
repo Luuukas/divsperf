@@ -35,9 +35,9 @@
 
 # The progress of the development
 
-目前的进度是基本实现了整个架构，对各个部分进行了少量测试，基本保证功能的正确性。但目前完成的插件的开发仅针对dns压测。
+​		目前的进度是基本实现了整个架构，对各个部分进行了少量测试，基本保证功能的正确性。但目前完成的插件的开发仅针对dns压测。
 
-![dns_effect_0](.\effectpics\dns_effect_0.png)
+![dns_effect_0](https://s1.ax1x.com/2020/06/27/NyoF5q.png)
 
 # Problems to be solved
 
